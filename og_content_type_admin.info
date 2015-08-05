@@ -5,6 +5,5 @@ version = 7.x-1.0
 php = 5.2.4
 project = og_content_type_admin
 dependencies[] = og
-dependencies[] = multisite_og_button
 files[] = tests/og_content_type_admin.test
 configure = admin/config/group/og_content_types

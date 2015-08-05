@@ -27,7 +27,6 @@ class OgContentTypeAdminFeatureTest extends DrupalWebTestCase {
    * Configure environment: declare modules, users, permissions...
    */
   public function setUp() {
-    $this->profile = 'multisite_drupal_communities';
     parent::setUp(array('og_content_type_admin', 'i18n_string'));
     node_access_rebuild();
   }
