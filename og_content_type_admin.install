@@ -1,0 +1,96 @@
+<?php
+/**
+ * @file
+ * Install the feature og_content_type_admin
+ */
+
+include_once 'og_content_type_admin.install.inc';
+
+/**
+ * Implements hook_schema().
+ */
+function og_content_type_admin_schema() {
+  $schema['og_content_type_admin'] = array(
+    'description' => 'Stores content type settings for each organic group.',
+    'fields' => array(
+      'gid' => array(
+        'type' => 'int',
+        'length' => '11',
+        'not null' => TRUE,
+        'default' => '0'),
+      'name' => array(
+        'type' => 'varchar',
+        'length' => '128',
+        'not null' => TRUE,
+        'default' => ''),
+      'types_allowed' => array(
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => TRUE),
+      'types_active' => array(
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => TRUE),
+    ),
+    'primary key' => array('gid'),
+  );
+  return $schema;
+}
+
+/**
+ * Implements hook_install().
+ */
+function og_content_type_admin_install() {
+  // Get og_content_type_admin's weight.
+  $weight = db_select('system', 's')
+    ->fields('s', array('weight'))
+    ->condition('name', 'og', '=')
+    ->execute()
+    ->fetchField();
+
+  // Update og_content_type_admin's weight (og + 1).
+  db_update('system')
+    ->fields(array('weight' => $weight +1))
+    ->condition('name', 'og_content_type_admin', '=')
+    ->execute();
+
+  try{
+    // Update 'og_content_type_admin' table.
+    $site_wide = _og_content_type_admin_update_types(-1);
+    $site_default = _og_content_type_admin_update_types(0);
+
+    drupal_set_message(st('The OG Content Type Admin module was installed successfully. A table was added to the database.'));
+  }
+  catch (Exception $e) {
+    drupal_set_message(check_plain(st('There was an error installing the OG Content Type Admin database table.' . $e->getMessage())), 'error');
+  }
+}
+
+/**
+ * Implements hook_enable().
+ */
+function og_content_type_admin_enable() {
+  drupal_set_message(t('OG Content Type Admin %v feature is now active on your site.', array('%v' => _og_content_type_admin_get_version())));
+  drupal_set_message(st('The OG Content Type Admin module was enabled successfully. Default settings were initialized.'));
+  drupal_set_message(t('Go to ' . l('admin/config/group/og_content_types', 'admin/config/group/og_content_types', array('attributes' => array('target' => '_blank'))) . ' to review the settings.'));
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function og_content_type_admin_uninstall() {
+  drupal_uninstall_schema('og_content_type_admin');
+  drupal_set_message(st('The OG Content Type Admin module was uninstalled successfully.'));
+}
+
+/**
+ * Implements hook_disable().
+ */
+function og_content_type_admin_disable() {
+  // Set default weight to the module.
+  db_update('system')
+    ->fields(array('weight' => 0))
+    ->condition('name', 'og_content_type_admin', '=')
+    ->execute();
+  drupal_set_message(t('OG Content Type Admin %v feature is now disabled on your site.', array('%v' => _og_content_type_admin_get_version())));
+}
